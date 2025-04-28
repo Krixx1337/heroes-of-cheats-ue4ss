@@ -15,10 +15,18 @@ M.sharedVarPrefix = "HoV_"
 -- Enforcement loop interval (milliseconds)
 M.loopIntervalMs = 50
 
--- Default Game Values (Used for resetting features)
+-- Default Game Values
 M.defaultWalkSpeedMult = 0.335
 M.defaultRunSpeedMult = 0.500
 M.defaultFireRateCDMult = 1.0
+-- Recoil Defaults
+M.defaultRecoilHip = 0.030 -- From MP40
+M.defaultRecoilAim = 0.030 -- From MP40
+M.defaultRecoilAnim = 1.0
+M.defaultRecoilHandAnim = 0.0
+M.defaultEnableSidewaysRecoil = false
+M.defaultUseRandomRecoil = false
+M.defaultFireCameraShakeAmount = 1.0
 
 -- Feature Internal Names (Used for state management and lookup)
 M.Features = {
