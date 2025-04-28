@@ -42,6 +42,10 @@ Key settings can be adjusted in `Scripts/config.lua`:
 *   Requires UE4SS Lua API knowledge.
 *   Relies on specific game property names (`DamageMultiplier`, `ActiveEquipable`, `PawnDataComponent.Team`, etc.) found via SDK/memory dumps. Game updates may break these.
 
+## Credits
+
+*   **[fluffysnaff](https://github.com/fluffysnaff)** - Helped with initial code and testing.
+
 ## Disclaimer
 
 Use cheats responsibly, especially in online environments (if applicable). This mod is provided as-is. Game updates may break functionality.
