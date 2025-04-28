@@ -9,10 +9,14 @@ Toggle features ON/OFF using these keys:
 *   **F1:** Damage Multiplier (x100)
 *   **F2:** Burning Bullets
 *   **F3:** Super Speed (x15)
-*   **F4:** Perfect Accuracy (No Spread + No Sway)
+*   **F4:** Perfect Accuracy (No Spread + No Sway + No Recoil)
 *   **F5:** Rapid Fire (+ Instant Reload)
 
 Toggled status is shown in the UE4SS console. Cheats persist across respawns.
+
+## Clip Showcase
+
+[Heroes of Rapid Fire](https://streamable.com/0bpj9x)
 
 ## Installation
 
