@@ -8,7 +8,7 @@ local M = {}
 function M.Apply()
     local playerPawn = utils.GetPlayerPawn()
     if not playerPawn then return end
-    utils.ApplyPropertyChange("DamageMultiplier", 100.0, 1.0, state.Get(config.Features.INF_DAMAGE), playerPawn, "PlayerPawn")
+    utils.ApplyPropertyChange("DamageMultiplier", 3.0, 1.0, state.Get(config.Features.INF_DAMAGE), playerPawn, "PlayerPawn")
 end
 
 return M

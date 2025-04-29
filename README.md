@@ -6,7 +6,7 @@ A Lua-based mod for **Heroes of Valor**, built using **UE4SS (v3.0.1+)**, provid
 
 Toggle features ON/OFF using these keys:
 
-*   **F1:** Damage Multiplier (x100)
+*   **F1:** Damage Multiplier (x3)
 *   **F2:** Burning Bullets
 *   **F3:** Super Speed (x15)
 *   **F4:** Perfect Accuracy (No Spread + No Sway + No Recoil)
