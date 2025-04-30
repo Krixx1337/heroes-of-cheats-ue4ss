@@ -8,6 +8,7 @@ local config = require("config")
 local M = {}
 
 -- Cached Player Pawn reference
+---@type ABP_Character_C | nil
 local cachedPlayerPawn = nil
 
 -- Safely gets Class FName and Object Full Name for a UObject.
@@ -16,12 +17,15 @@ function M.GetObjectNames(obj)
     if not obj or not obj:IsValid() then return names end
     names.ClassFName = "[Error:GetClass]"; names.ObjectFullName = "[Error:GetFullName(Obj)]"
     local successClass, classObj = pcall(function() return obj:GetClass() end)
-    if successClass and classObj and classObj:IsValid() then local s, r = pcall(function() return classObj:GetFName():ToString() end); if s then names.ClassFName = r end end
+    if successClass and classObj and classObj:IsValid() then
+        local s, r = pcall(function() return classObj:GetFName():ToString() end); if s then names.ClassFName = r end
+    end
     local s, r = pcall(function() return obj:GetFullName() end); if s then names.ObjectFullName = r end
     return names
 end
 
 -- Finds and caches the local player's pawn. Returns the pawn object or nil.
+---@return ABP_Character_C | nil
 function M.GetPlayerPawn()
     -- Use cache if valid
     if cachedPlayerPawn and cachedPlayerPawn:IsValid() then
@@ -30,10 +34,12 @@ function M.GetPlayerPawn()
 
     -- If cache is invalid or missing, find pawn via controller
     cachedPlayerPawn = nil -- Ensure reset before find attempt
+    ---@type APlayerController | nil
     local PlayerController = FindFirstOf("PlayerController")
     if not PlayerController or not PlayerController:IsValid() then return nil end
 
     -- Try AcknowledgedPawn first, then Pawn
+    ---@type APawn | nil
     local Pawn = PlayerController.AcknowledgedPawn
     if not Pawn or not Pawn:IsValid() then Pawn = PlayerController.Pawn end
     if not Pawn or not Pawn:IsValid() then return nil end
@@ -41,6 +47,7 @@ function M.GetPlayerPawn()
     -- Verify the found Pawn's class *only when first found*
     local pawnNames = M.GetObjectNames(Pawn)
     if pawnNames.ClassFName == config.requiredPlayerClassName then
+        ---@cast Pawn ABP_Character_C -- Cast to specific type after check
         cachedPlayerPawn = Pawn -- Cache the validated pawn
         return cachedPlayerPawn
     end
@@ -50,18 +57,23 @@ end
 
 
 -- Gets the currently equipped weapon object, checking inheritance.
+---@return ABP_RangedWeaponBase_C | nil
 function M.GetEquippedRangedWeapon()
+    ---@type ABP_Character_C | nil
     local playerPawn = M.GetPlayerPawn()
     if not playerPawn then return nil end
 
     -- Safely access ActiveEquipable
+    ---@type ABP_EquipableBase_C | nil
     local weapon = nil
     local success, equipped = pcall(function() return playerPawn.ActiveEquipable end)
     if not success or not equipped or not equipped:IsValid() then return nil end
+    ---@cast equipped ABP_EquipableBase_C
     weapon = equipped
 
     -- Use DoesInheritFrom for robust type checking
     if M.DoesInheritFrom(weapon, config.requiredWeaponBaseClassName) then
+         ---@cast weapon ABP_RangedWeaponBase_C
         return weapon
     end
 
@@ -69,17 +81,21 @@ function M.GetEquippedRangedWeapon()
 end
 
 -- Gets the vehicle the player pawn is currently operating, if any.
+---@return ABP_VehicleBase_C | nil
 function M.GetCurrentVehicle()
+    ---@type ABP_Character_C | nil
     local playerPawn = M.GetPlayerPawn()
     if not playerPawn then return nil end
 
     -- Access the VehicleRef property safely
+    ---@type ABP_VehicleBase_C | nil
     local vehicleRef = nil
     local success, vehicle = pcall(function() return playerPawn.VehicleRef end)
 
     if success and vehicle and vehicle:IsValid() then
         -- Check if the vehicle itself inherits from a base (optional, could be too generic)
         -- For now, just return the valid reference. Type checks happen in feature logic.
+         ---@cast vehicle ABP_VehicleBase_C
         vehicleRef = vehicle
     end
 
@@ -90,11 +106,13 @@ end
 function M.DoesInheritFrom(targetObject, baseClassName)
     if not targetObject or not targetObject:IsValid() or not baseClassName then return false end
 
+    ---@type UClass | nil
     local targetClass = nil
     local sClass, tc = pcall(function() return targetObject:GetClass() end)
     if not (sClass and tc and tc:IsValid()) then return false end -- Cannot check type without a valid class object
     targetClass = tc
 
+    ---@type UClass | nil
     local currentClass = targetClass
     local iteration = 0
     local maxIterations = 15 -- Safety limit for deep hierarchies or potential loops

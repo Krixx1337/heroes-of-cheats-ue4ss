@@ -6,6 +6,7 @@ local config = require("config")
 local M = {}
 
 function M.Apply()
+    ---@type ABP_Character_C | nil
     local playerPawn = utils.GetPlayerPawn()
     if not playerPawn then return end
 
@@ -19,6 +20,7 @@ function M.Apply()
     utils.ApplyPropertyChange("UseCameraAimingSway", false, true, isEnabled, playerPawn, "PlayerPawn_Accuracy")
 
     -- Apply No Recoil (on Weapon)
+    ---@type ABP_RangedWeaponBase_C | nil
     local weapon = utils.GetEquippedRangedWeapon()
     if weapon then
         -- Set Recoil Amounts to 0 when enabled, reset to defaults when disabled

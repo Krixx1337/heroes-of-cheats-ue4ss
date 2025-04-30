@@ -22,12 +22,15 @@ function M.CreateToggleHandler(featureDisplayName, featureInternalName, immediat
 
         -- Optionally attempt immediate apply/reset for responsiveness
         ExecuteInGameThread(function()
-            if utils.GetPlayerPawn() then
+            ---@type ABP_Character_C | nil
+            local playerPawn = utils.GetPlayerPawn()
+            if playerPawn then
                  if newState then
                      if immediateApplyFunc then immediateApplyFunc() end
                  elseif resetFunc then
                      resetFunc()
                  elseif immediateApplyFunc then
+                     -- Fallback to apply if reset isn't provided but apply is
                      immediateApplyFunc()
                  end
              end

@@ -6,6 +6,7 @@ local config = require("config")
 local M = {}
 
 function M.Apply()
+    ---@type ABP_Character_C | nil
     local playerPawn = utils.GetPlayerPawn()
     if not playerPawn then return end
     local enabled = state.Get(config.Features.SUPER_SPEED)

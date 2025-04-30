@@ -19,12 +19,15 @@ function M.SetupLoop()
 
         if anyFeatureEnabled then
             ExecuteInGameThread(function()
+                ---@type ABP_Character_C | nil
                 local currentPawn = utils.GetPlayerPawn()
                 if not currentPawn or not currentPawn:IsValid() then return end
 
                 -- Check IsDead flag before applying cheats
                 local isAlive = true
                 local successGetDead, isDeadFlag = pcall(function() return currentPawn.IsDead end)
+                ---@type boolean | nil
+                isDeadFlag = isDeadFlag -- Explicitly type hint local
                 if successGetDead then if isDeadFlag == true then isAlive = false end
                 else print("[HeroesOfCheatsMod] WARNING: Failed to read IsDead property."); isAlive = false end -- Assume not safe if read fails
 

@@ -11,16 +11,19 @@ function M.Apply()
     local isRapidFireEnabled = state.Get(config.Features.RAPID_FIRE)
     if not isRapidFireEnabled then return end
 
+    ---@type ABP_Character_C | nil
     local playerPawn = utils.GetPlayerPawn()
     if not playerPawn then return end
 
     -- Apply character fire rate multiplier
     utils.ApplyPropertyChange("FireRateCDMultiplier", 0.01, config.defaultFireRateCDMult, true, playerPawn, "PlayerPawn_RapidFire")
 
+    ---@type ABP_VehicleBase_C | nil
     local vehicleRef = utils.GetCurrentVehicle()
 
     if not vehicleRef then
         -- Player is on foot: Apply instant reload to equipped weapon
+        ---@type ABP_RangedWeaponBase_C | nil
         local weapon = utils.GetEquippedRangedWeapon()
         if weapon then
              pcall(function() weapon:InstantReload() end)
@@ -28,15 +31,18 @@ function M.Apply()
     else
         -- Player is in a vehicle: Apply Plane-specific rapid fire
         if utils.DoesInheritFrom(vehicleRef, config.requiredPlaneBaseClassName) then
+            ---@type ABP_PlaneBase_C
+            local plane = vehicleRef -- Hinting as specific type after check
             -- Apply Plane rapid fire (bomb reload timer and status flag)
-            utils.ApplyPropertyChange("BombReloadTimer", 0.0, 0.0, true, vehicleRef, "Plane_RapidFire") -- Force 0 while active
-            utils.ApplyPropertyChange("BombReloading", false, false, true, vehicleRef, "Plane_RapidFire") -- Force false while active
+            utils.ApplyPropertyChange("BombReloadTimer", 0.0, 0.0, true, plane, "Plane_RapidFire") -- Force 0 while active
+            utils.ApplyPropertyChange("BombReloading", false, false, true, plane, "Plane_RapidFire") -- Force false while active
         end
     end
 end
 
 -- Reset properties modified by rapid fire when the feature is toggled OFF
 function M.Reset()
+    ---@type ABP_Character_C | nil
     local playerPawn = utils.GetPlayerPawn()
     if not playerPawn then return end
 

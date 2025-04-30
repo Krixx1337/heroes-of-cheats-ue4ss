@@ -45,10 +45,13 @@ function M.RegisterAll()
         if not state.Get(config.Features.RAPID_FIRE) then return end -- Check F5 state
 
         -- Check if player is currently controlling a tank
+        ---@type ABP_VehicleBase_C | nil
         local vehicle = utils.GetCurrentVehicle()
         if vehicle and utils.DoesInheritFrom(vehicle, config.requiredTankBaseClassName) then
+            ---@type ABP_TankBase_C
+            local tank = vehicle -- Type hint after successful check
             -- Attempt to call MC_Fire directly
-            pcall(function() vehicle:MC_Fire() end)
+            pcall(function() tank:MC_Fire() end)
         end
     end)
 

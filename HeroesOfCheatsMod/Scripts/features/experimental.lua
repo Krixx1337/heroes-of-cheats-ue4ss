@@ -8,7 +8,9 @@ local M = {}
 -- This function runs in the loop when the Experimental Toggle (F8) is ON
 function M.Apply()
     if not state.Get(config.Features.EXPERIMENTAL_TOGGLE) then return end
+    ---@type ABP_Character_C | nil
     local playerPawn = utils.GetPlayerPawn()
+    ---@type ABP_RangedWeaponBase_C | nil
     local weapon = utils.GetEquippedRangedWeapon()
     if not playerPawn then return end
 
