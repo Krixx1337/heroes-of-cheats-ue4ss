@@ -20,7 +20,8 @@ local success, keybinds = pcall(require, "keybinds"); if not success then error(
 print("[HeroesOfCheatsMod] Loading Feature Modules...")
 local featureModules = {
     "features.damage", "features.burning_bullets", "features.speed",
-    "features.perfect_accuracy", "features.rapid_fire", "features.telekill",
+    "features.perfect_accuracy", "features.rapid_fire",
+    "features.vehicle_god_mode",
     "features.experimental"
 }
 for _, path in ipairs(featureModules) do
@@ -33,9 +34,7 @@ print("[HeroesOfCheatsMod] Feature Modules Loaded.")
 local success, apply_all = pcall(require, "apply_all"); if not success then error("FATAL: Failed to load apply_all.lua: " .. tostring(apply_all)) end
 
 
--- ####################################################################
--- ##                      INITIALIZATION                            ##
--- ####################################################################
+-- Initialize Feature States
 print("[HeroesOfCheatsMod] Initializing Feature States...")
 for featureKey, featureInternalName in pairs(config.Features) do
     state.Initialize(featureInternalName) -- Ensure variable exists
@@ -43,31 +42,25 @@ for featureKey, featureInternalName in pairs(config.Features) do
 end
 print("[HeroesOfCheatsMod] State Initialization Complete (All Features OFF).")
 
--- ####################################################################
--- ##                   SETUP PERSISTENCE LOOP                       ##
--- ####################################################################
+
+-- Setup Persistence Loop
 print("[HeroesOfCheatsMod] Setting up Persistence Mechanism...")
 persistence.SetupLoop()
 print("[HeroesOfCheatsMod] Persistence Mechanism Active.")
 
--- ####################################################################
--- ##                  REGISTER KEYBINDS                             ##
--- ####################################################################
+
+-- Register Keybinds
 keybinds.RegisterAll()
 
--- ####################################################################
--- ##                      MOD LOAD COMPLETION                       ##
--- ####################################################################
+
+-- Mod Load Completion Message
 print("-----------------------------------------------------")
-print("[HeroesOfCheatsMod] Enhanced Mod Loaded (v1.0 - Release).") -- Updated version
+print("[HeroesOfCheatsMod] Enhanced Mod Loaded (v1.1).")
 print("  > All features initialized to OFF.")
 print("  > Keybinds:")
 local bindList = keybinds.GetKeybindList()
 for _, bindInfo in ipairs(bindList) do
     print(bindInfo)
 end
-print(string.format("  > Player Class Target: '%s'", config.requiredPlayerClassName))
-print(string.format("  > Weapon Class Target: '%s'", config.requiredWeaponBaseClassName))
-print(string.format("  > Enforcement Loop Interval: %dms", config.loopIntervalMs))
 print("-----------------------------------------------------")
 -- End of main script execution

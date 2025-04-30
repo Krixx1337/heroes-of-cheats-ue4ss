@@ -11,7 +11,7 @@ local requiredFeatures = {
     speed = require("features.speed"),
     perfect_accuracy = require("features.perfect_accuracy"),
     rapid_fire = require("features.rapid_fire"),
-    telekill = require("features.telekill"),
+    vehicle_god_mode = require("features.vehicle_god_mode"),
     experimental = require("features.experimental"),
 }
 
@@ -19,11 +19,12 @@ local M = {}
 
 -- Calls the Apply() function for all relevant features.
 function M.ApplyAllCheats()
+    -- Avoid processing if player pawn is not valid
     if not utils.GetPlayerPawn() then return end
 
     for featureName, featureModule in pairs(requiredFeatures) do
         if featureModule and type(featureModule.Apply) == "function" then
-            -- Using pcall for safety in case a feature's Apply func errors
+            -- Use pcall for safety; prevents one feature error from crashing the loop.
             local success, err = pcall(featureModule.Apply)
             if not success then
                 print(string.format("[HeroesOfCheatsMod] ERROR executing Apply for feature '%s': %s", featureName, tostring(err)))

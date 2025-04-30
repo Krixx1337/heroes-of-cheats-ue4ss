@@ -10,6 +10,7 @@ M.requiredPlayerClassName = "BP_Character_C"
 M.requiredWeaponBaseClassName = "BP_RangedWeaponBase_C"
 M.requiredTankBaseClassName = "BP_TankBase_C"
 M.requiredPlaneBaseClassName = "BP_PlaneBase_C"
+M.requiredVehicleBaseClassName = "BP_VehicleBase_C"
 
 -- Prefix for persistent state variables
 M.sharedVarPrefix = "HoV_"
@@ -17,14 +18,14 @@ M.sharedVarPrefix = "HoV_"
 -- Enforcement loop interval (milliseconds)
 M.loopIntervalMs = 50
 
--- Default Game Values
+-- Default Game Values (captured for potential resets)
 M.defaultWalkSpeedMult = 0.335
 M.defaultRunSpeedMult = 0.500
 M.defaultFireRateCDMult = 1.0
 
--- Recoil Defaults
-M.defaultRecoilHip = 0.030 -- From MP40
-M.defaultRecoilAim = 0.030 -- From MP40
+-- Recoil Defaults (captured for potential resets)
+M.defaultRecoilHip = 0.030
+M.defaultRecoilAim = 0.030
 M.defaultRecoilAnim = 1.0
 M.defaultRecoilHandAnim = 0.0
 M.defaultEnableSidewaysRecoil = false
@@ -38,7 +39,7 @@ M.Features = {
     SUPER_SPEED = "enableSpeed",
     PERFECT_ACCURACY = "enableAccuracy",
     RAPID_FIRE = "enableRapid",
-    TELEKILL = "enableTelekill",
+    VEHICLE_GOD_MODE = "enableVehicleGodMode",
     EXPERIMENTAL_TOGGLE = "enableExperimental",
 }
 
