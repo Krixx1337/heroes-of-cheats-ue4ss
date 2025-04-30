@@ -8,6 +8,8 @@ local M = {}
 -- Target Blueprint Class Names (Verify for game version)
 M.requiredPlayerClassName = "BP_Character_C"
 M.requiredWeaponBaseClassName = "BP_RangedWeaponBase_C"
+M.requiredTankBaseClassName = "BP_TankBase_C"
+M.requiredPlaneBaseClassName = "BP_PlaneBase_C"
 
 -- Prefix for persistent state variables (prevents conflicts)
 M.sharedVarPrefix = "HoV_"
@@ -27,6 +29,9 @@ M.defaultRecoilHandAnim = 0.0
 M.defaultEnableSidewaysRecoil = false
 M.defaultUseRandomRecoil = false
 M.defaultFireCameraShakeAmount = 1.0
+-- Vehicle Defaults
+M.defaultTankReloadTime = 4.0
+M.defaultPlaneBombReloadTime = 0.0
 
 -- Feature Internal Names (Used for state management and lookup)
 M.Features = {

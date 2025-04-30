@@ -10,7 +10,7 @@ Toggle features ON/OFF using these keys:
 *   **F2:** Burning Bullets
 *   **F3:** Super Speed (x15)
 *   **F4:** Perfect Accuracy (No Spread + No Sway + No Recoil)
-*   **F5:** Rapid Fire (+ Instant Reload)
+*   **F5:** Rapid Fire (Character Weapons + Tank Main Gun + Plane Bombs) & Instant Reload (Character Weapons)
 
 Toggled status is shown in the UE4SS console. Cheats persist across respawns.
 
