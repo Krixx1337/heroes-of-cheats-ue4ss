@@ -10,7 +10,10 @@ Toggle features ON/OFF using these keys:
 *   **F2:** Burning Bullets
 *   **F3:** Super Speed (x15)
 *   **F4:** Perfect Accuracy (No Spread + No Sway + No Recoil)
-*   **F5:** Rapid Fire (Character Weapons + Tank Main Gun + Plane Bombs) & Instant Reload (Character Weapons)
+*   **F5:** Rapid Fire:
+    *   **Character:** Enables weapon rapid fire & instant reload.
+    *   **Plane:** Enables rapid bomb dropping.
+    *   **Tank:** **Does not directly modify tank reload.** Instead, while F5 is active, pressing **Left Mouse Button** in a tank will directly trigger the main gun firing, bypassing normal reload checks.
 
 Toggled status is shown in the UE4SS console. Cheats persist across respawns.
 

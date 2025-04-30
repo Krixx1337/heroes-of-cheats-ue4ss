@@ -1,19 +1,20 @@
---[[ Feature: Rapid Fire (Character & Vehicle) & Instant Reload ]]--
+--[[ Feature: Rapid Fire (Character & Plane) & Instant Reload (Character) ]]--
 local utils = require("utils")
 local state = require("state")
 local config = require("config")
 
 local M = {}
 
--- Apply rapid fire effects based on player state (on foot or in vehicle)
+-- Apply rapid fire effects based on player state (on foot or in plane)
+-- Tank rapid fire is handled via direct MC_Fire call in keybinds.lua
 function M.Apply()
     local isRapidFireEnabled = state.Get(config.Features.RAPID_FIRE)
-    if not isRapidFireEnabled then return end -- Feature is disabled
+    if not isRapidFireEnabled then return end
 
     local playerPawn = utils.GetPlayerPawn()
     if not playerPawn then return end
 
-    -- Always apply character fire rate multiplier if feature is ON
+    -- Apply character fire rate multiplier
     utils.ApplyPropertyChange("FireRateCDMultiplier", 0.01, config.defaultFireRateCDMult, true, playerPawn, "PlayerPawn_RapidFire")
 
     local vehicleRef = utils.GetCurrentVehicle()
@@ -22,17 +23,13 @@ function M.Apply()
         -- Player is on foot: Apply instant reload to equipped weapon
         local weapon = utils.GetEquippedRangedWeapon()
         if weapon then
-             pcall(function() weapon:InstantReload() end) -- Safely attempt instant reload
+             pcall(function() weapon:InstantReload() end)
         end
     else
-        -- Player is in a vehicle: Apply vehicle-specific rapid fire
-        if utils.DoesInheritFrom(vehicleRef, config.requiredTankBaseClassName) then
-            -- Apply Tank rapid fire (main gun reload time)
-            utils.ApplyPropertyChange("ReloadTime", 0.01, config.defaultTankReloadTime, true, vehicleRef, "Tank_RapidFire")
-
-        elseif utils.DoesInheritFrom(vehicleRef, config.requiredPlaneBaseClassName) then
+        -- Player is in a vehicle: Apply Plane-specific rapid fire
+        if utils.DoesInheritFrom(vehicleRef, config.requiredPlaneBaseClassName) then
             -- Apply Plane rapid fire (bomb reload timer and status flag)
-            utils.ApplyPropertyChange("BombReloadTimer", 0.0, config.defaultPlaneBombReloadTime, true, vehicleRef, "Plane_RapidFire")
+            utils.ApplyPropertyChange("BombReloadTimer", 0.0, 0.0, true, vehicleRef, "Plane_RapidFire") -- Force 0 while active
             utils.ApplyPropertyChange("BombReloading", false, false, true, vehicleRef, "Plane_RapidFire") -- Force false while active
         end
     end
@@ -43,27 +40,14 @@ function M.Reset()
     local playerPawn = utils.GetPlayerPawn()
     if not playerPawn then return end
 
-    print("[HeroesOfCheatsMod] Resetting Rapid Fire...")
+    print("[HeroesOfCheatsMod] Resetting Character/Plane Rapid Fire Properties...")
 
     -- Reset character fire rate multiplier to default
     utils.ApplyPropertyChange("FireRateCDMultiplier", 0.01, config.defaultFireRateCDMult, false, playerPawn, "PlayerPawn_RapidFire")
 
-    local vehicleRef = utils.GetCurrentVehicle()
-    if vehicleRef then
-        -- If player is in a vehicle, reset its specific properties
-        local vehicleObjName = utils.GetObjectNames(vehicleRef).ObjectFullName
-        print(string.format("[HeroesOfCheatsMod] ...also resetting vehicle '%s'", vehicleObjName))
-
-        if utils.DoesInheritFrom(vehicleRef, config.requiredTankBaseClassName) then
-            -- Reset Tank reload time to default
-            utils.ApplyPropertyChange("ReloadTime", 0.01, config.defaultTankReloadTime, false, vehicleRef, "Tank_RapidFire")
-
-        elseif utils.DoesInheritFrom(vehicleRef, config.requiredPlaneBaseClassName) then
-            -- Reset Plane bomb timer to default.
-            utils.ApplyPropertyChange("BombReloadTimer", 0.0, config.defaultPlaneBombReloadTime, false, vehicleRef, "Plane_RapidFire")
-            -- Do NOT reset BombReloading here; allow the game's standard logic to control it when the cheat is inactive.
-        end
-    end
+    -- Plane properties (BombReloadTimer, BombReloading) reset automatically
+    -- when the Apply function stops forcing them, as their default/inactive state is 0/false.
+    -- No explicit reset needed here.
 end
 
 return M
