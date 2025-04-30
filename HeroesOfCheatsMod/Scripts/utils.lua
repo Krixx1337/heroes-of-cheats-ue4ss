@@ -23,21 +23,12 @@ end
 
 -- Finds and caches the local player's pawn. Returns the pawn object or nil.
 function M.GetPlayerPawn()
-    -- Use cache if valid and class matches
+    -- Use cache if valid
     if cachedPlayerPawn and cachedPlayerPawn:IsValid() then
-        -- Re-verify class name in case the cached object changed unexpectedly
-        local success, classObj = pcall(function() return cachedPlayerPawn:GetClass() end)
-        if success and classObj and classObj:IsValid() then
-            local s, currentClassName = pcall(function() return classObj:GetFName():ToString() end)
-            if s and currentClassName == config.requiredPlayerClassName then
-                 return cachedPlayerPawn
-            end
-        end
-        -- Invalidate cache if checks fail
-        cachedPlayerPawn = nil
+        return cachedPlayerPawn
     end
 
-    -- Find pawn via controller if cache is invalid or missing
+    -- If cache is invalid or missing, find pawn via controller
     cachedPlayerPawn = nil -- Ensure reset before find attempt
     local PlayerController = FindFirstOf("PlayerController")
     if not PlayerController or not PlayerController:IsValid() then return nil end
@@ -47,10 +38,10 @@ function M.GetPlayerPawn()
     if not Pawn or not Pawn:IsValid() then Pawn = PlayerController.Pawn end
     if not Pawn or not Pawn:IsValid() then return nil end
 
-    -- Verify the found Pawn's class
+    -- Verify the found Pawn's class *only when first found*
     local pawnNames = M.GetObjectNames(Pawn)
     if pawnNames.ClassFName == config.requiredPlayerClassName then
-        cachedPlayerPawn = Pawn
+        cachedPlayerPawn = Pawn -- Cache the validated pawn
         return cachedPlayerPawn
     end
 
