@@ -10,10 +10,10 @@ Toggle features ON/OFF using these keys:
 *   **F2:** Burning Bullets
 *   **F3:** Super Speed (x15)
 *   **F4:** Perfect Accuracy (No Spread + No Sway + No Recoil)
-*   **F5:** Rapid Fire:
+*   **F5:** Rapid Fire Toggle:
     *   **Character:** Enables weapon rapid fire & instant reload.
     *   **Plane:** Enables rapid bomb dropping.
-    *   **Tank:** **Does not directly modify tank reload.** Instead, while F5 is active, pressing **Left Mouse Button** in a tank will directly trigger the main gun firing, bypassing normal reload checks.
+    *   **Tank:** While F5 is active, pressing **Left Mouse Button** in a tank directly triggers main gun firing, bypassing normal reload checks.
 
 Toggled status is shown in the UE4SS console. Cheats persist across respawns.
 
@@ -21,19 +21,15 @@ Toggled status is shown in the UE4SS console. Cheats persist across respawns.
 
 [Heroes of Rapid Fire](https://streamable.com/0bpj9x)
 
-## Installation
+## Installation (For End Users)
 
-1.  **Install UE4SS:** Ensure UE4SS v3.0.1 or newer is installed for Heroes of Valor. Follow the official UE4SS installation guide. Configure `UE4SS-settings.ini` for Lua mods (`ConsoleEnabled = 0`, `GuiConsoleEnabled = 1`, etc.).
+1.  **Install UE4SS:** Ensure UE4SS v3.0.1 or newer is installed for Heroes of Valor. Follow the official UE4SS installation guide (typically involves placing `dwmapi.dll` in `...\Binaries\Win64\` and other files in `...\Binaries\Win64\ue4ss\`). Configure `UE4SS-settings.ini` (in `...\Win64\ue4ss\`) for Lua mods (`GuiConsoleEnabled = 1`, `GuiConsoleVisible = 1`, etc.).
 2.  **Download Mod:**
-    *   **Recommended:** Go to the [Releases page](https://github.com/Krixx1337/heroes-of-cheats-ue4ss/releases) and download the latest tagged release `.zip` file.
-    *   **Alternatively (Latest Code):** Go to the main repository page, click the green "<> Code" button, and select "Download ZIP". This will download the current development state.
-3.  **Extract Mod:** Extract the downloaded zip file. Inside, you should find a folder named `HeroesOfCheatsMod` (or similar, containing a `Scripts` folder). Copy this `HeroesOfCheatsMod` folder into your game's UE4SS mods directory: `...\Heroes of Valor\Binaries\Win64\ue4ss\Mods\`
-    *   The final path should look like: `...\ue4ss\Mods\HeroesOfCheatsMod\Scripts\`
-4.  **Enable Mod:** Open `...\ue4ss\Mods\mods.txt` and add the line:
-    ```
-    HeroesOfCheatsMod : 1
-    ```
-5.  **Launch Game:** The UE4SS console should show messages from `[HeroesOfCheatsMod]` on startup, including the keybind list.
+    *   **Recommended:** Go to the [Releases page](https://github.com/Krixx1337/heroes-of-cheats-ue4ss/releases) and download the latest tagged release `.zip` file for a stable version.
+    *   **Alternatively (Latest Code):** Go to the main repository page, click the green "<> Code" button, and select "Download ZIP". This will download the current development state, which might be unstable.
+3.  **Extract Mod:** Copy the `HeroesOfCheatsMod` folder from the zip into your game's UE4SS mods directory: `...\Heroes of Valor\Binaries\Win64\ue4ss\Mods\`
+4.  **Enable Mod:** Open `...\Win64\ue4ss\Mods\mods.txt` and add the line `HeroesOfCheatsMod : 1` (usually placed under `BPModLoaderMod : 1` if it exists).
+5.  **Launch Game:** Check the UE4SS console for loading messages.
 
 ## Recommended Development Setup
 
@@ -48,24 +44,25 @@ Toggled status is shown in the UE4SS console. Cheats persist across respawns.
     *   Open the **repository root folder** (e.g., `C:\MyMods\heroes-of-cheats-ue4ss`) in VSCode.
     *   Install the `Lua` extension by `sumneko`.
     *   Run the game once, use UE4SS console -> Dumpers -> "Generate Lua Types".
-    *   Copy the generated `types` folder from `<GameDir>\...\ue4ss\Mods\shared\types` into your repository root.
+    *   Copy the generated `types` folder from `<GameDir>\...\Win64\ue4ss\Mods\shared\types` into your repository root.
+    *   Ensure `/types/` is in `.gitignore`.
     *   The included `.luarc.json` is pre-configured to use `./types` and define common globals for better IntelliSense.
-    *   Restart VSCode. Use `---@type ClassName` hints in code for best results.
-4.  **Enable Mod:** Ensure `HeroesOfCheatsMod : 1` is in the game's `...\ue4ss\Mods\mods.txt`.
+    *   Restart VSCode. Use `---@type ClassName` hints in code for best results (e.g., `---@type ABP_TankBase_C`).
+4.  **Enable Mod:** Ensure `HeroesOfCheatsMod : 1` is in the game's `...\Win64\ue4ss\Mods\mods.txt` file (usually placed under `BPModLoaderMod : 1` if it exists).
 
 ## Configuration
 
 Key settings can be adjusted in `Scripts/config.lua`:
 
-*   `requiredPlayerClassName`, `requiredWeaponBaseClassName`: Verify these match your game version if cheats fail.
+*   `requiredPlayerClassName`, `requiredWeaponBaseClassName`, `requiredTankBaseClassName`, `requiredPlaneBaseClassName`: Verify these match your game version if cheats fail.
 *   `loopIntervalMs`: Cheat enforcement loop speed.
-*   Default values for speed/rapid fire reset.
+*   `VK_LBUTTON`: Virtual Key code used for tank rapid fire override.
 
 ## Development Notes
 
 *   Built with a modular Lua structure.
 *   Requires UE4SS Lua API knowledge.
-*   Relies on specific game property names (`DamageMultiplier`, `ActiveEquipable`, `PawnDataComponent.Team`, etc.) found via SDK/memory dumps. Game updates may break these.
+*   Relies on specific game property/function names (`DamageMultiplier`, `ActiveEquipable`, `VehicleRef`, `MC_Fire`, `BombReloading`, etc.) found via SDK/memory dumps. Game updates may break these.
 
 ## Credits
 
@@ -73,4 +70,4 @@ Key settings can be adjusted in `Scripts/config.lua`:
 
 ## Disclaimer
 
-Use cheats responsibly, especially in online environments (if applicable). This mod is provided as-is. Game updates may break functionality.
+Use responsibly. Provided as-is. Game updates may break functionality.
