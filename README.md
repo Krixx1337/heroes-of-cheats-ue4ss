@@ -35,6 +35,24 @@ Toggled status is shown in the UE4SS console. Cheats persist across respawns.
     ```
 5.  **Launch Game:** The UE4SS console should show messages from `[HeroesOfCheatsMod]` on startup, including the keybind list.
 
+## Recommended Development Setup
+
+1.  **Clone Repository:** Clone this repo to a dedicated folder **outside** your game directory (e.g., `C:\MyMods\heroes-of-cheats-ue4ss`).
+2.  **Symbolic Link:**
+    *   Delete any existing `HeroesOfCheatsMod` folder inside `<GameDir>\...\Win64\ue4ss\Mods\`.
+    *   Open Command Prompt **as Administrator**.
+    *   Run: `cd /d "<GameDir>\Heroes of Valor\Binaries\Win64\ue4ss\Mods"`
+    *   Run: `mklink /D "HeroesOfCheatsMod" "<YourDevFolder>\heroes-of-cheats-ue4ss\HeroesOfCheatsMod"`
+    *   *(Replace `<GameDir>` and `<YourDevFolder>` with your actual paths).*
+3.  **VSCode & IntelliSense:**
+    *   Open the **repository root folder** (e.g., `C:\MyMods\heroes-of-cheats-ue4ss`) in VSCode.
+    *   Install the `Lua` extension by `sumneko`.
+    *   Run the game once, use UE4SS console -> Dumpers -> "Generate Lua Types".
+    *   Copy the generated `types` folder from `<GameDir>\...\ue4ss\Mods\shared\types` into your repository root.
+    *   The included `.luarc.json` is pre-configured to use `./types` and define common globals for better IntelliSense.
+    *   Restart VSCode. Use `---@type ClassName` hints in code for best results.
+4.  **Enable Mod:** Ensure `HeroesOfCheatsMod : 1` is in the game's `...\ue4ss\Mods\mods.txt`.
+
 ## Configuration
 
 Key settings can be adjusted in `Scripts/config.lua`:
