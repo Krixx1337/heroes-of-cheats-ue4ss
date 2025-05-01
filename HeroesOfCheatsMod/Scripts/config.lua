@@ -16,7 +16,7 @@ M.requiredVehicleBaseClassName = "BP_VehicleBase_C"
 M.sharedVarPrefix = "HoV_"
 
 -- Enforcement loop interval (milliseconds)
-M.loopIntervalMs = 100
+M.loopIntervalMs = 50
 
 -- Default Game Values (captured for potential resets)
 M.defaultWalkSpeedMult = 0.335

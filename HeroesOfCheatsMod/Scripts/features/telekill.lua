@@ -1,14 +1,15 @@
 --[[
     Feature: Telekill (Placeholder - Logic Removed)
-    Original functionality teleported enemies visually.
-    Currently disabled for public release.
 --]]
 
 local M = {}
 
--- Apply function - Now does nothing
-function M.Apply()
-    -- Intentionally left blank to disable functionality.
+-- Apply function - Now does nothing, accepts arguments for signature consistency.
+---@param playerPawn ABP_Character_C | nil
+---@param possessedVehicle ABP_VehicleBase_C | nil
+---@param currentWeapon ABP_RangedWeaponBase_C | nil
+function M.Apply(playerPawn, possessedVehicle, currentWeapon)
+    -- Intentionally left blank.
 end
 
 return M

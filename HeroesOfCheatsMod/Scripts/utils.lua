@@ -2,13 +2,14 @@
     Core Utility Functions
     Contains helpers for object finding, name retrieval, inheritance checks,
     and safe property modification. Caches player pawn and possessed vehicle,
-    requires external invalidation via hooks for stability.
+    relying primarily on external invalidation via hooks (e.g., ClientRestart)
+    for cache coherency to optimize performance.
 --]]
 local config = require("config")
 
 local M = {}
 
--- Cached references - Necessary for performance.
+-- Cached references - Performance critical. Validity managed externally.
 ---@type ABP_Character_C | nil
 local cachedPlayerPawn = nil
 ---@type ABP_VehicleBase_C | nil
@@ -16,7 +17,7 @@ local cachedPossessedVehicle = nil
 
 -- Function to invalidate all relevant caches, called by hooks.
 function M.InvalidateCaches()
-    -- print("[Utils] Invalidating Caches") -- Optional debug
+    -- print("[Utils] Invalidating Caches (Hook Triggered)") -- Optional debug
     cachedPlayerPawn = nil
     cachedPossessedVehicle = nil
 end
@@ -24,6 +25,7 @@ end
 -- Safely gets Class FName and Object Full Name for a UObject.
 function M.GetObjectNames(obj)
     local names = { ClassFName = "[Invalid Object]", ObjectFullName = "[Invalid Object]" }
+    -- Essential validity check for utility function input
     if not obj or not obj:IsValid() then return names end
     names.ClassFName = "[Error:GetClass]"; names.ObjectFullName = "[Error:GetFullName(Obj)]"
     local successClass, classObj = pcall(function() return obj:GetClass() end)
@@ -35,26 +37,34 @@ function M.GetObjectNames(obj)
 end
 
 -- Finds and caches the local player's CHARACTER pawn. Returns nil if player is in vehicle.
+-- Relies on external invalidation and downstream checks for validity.
 ---@return ABP_Character_C | nil
 function M.GetPlayerPawn()
-    -- Use cache if valid
-    if cachedPlayerPawn and cachedPlayerPawn:IsValid() then
+    -- Use cache if it exists (Highest performance path)
+    -- WARNING: No IsValid() check here for performance; relies on hooks/external checks.
+    if cachedPlayerPawn then
         return cachedPlayerPawn
     end
 
-    -- Cache miss or invalid, perform lookup
-    cachedPlayerPawn = nil -- Invalidate before search
+    -- Cache miss, perform lookup
+    -- print("[Utils] Cache Miss: GetPlayerPawn") -- Optional Debug
+    cachedPlayerPawn = nil -- Ensure cleared before assigning below
+
     local PlayerController = FindFirstOf("PlayerController")
+    -- Essential validity check after lookup
     if not PlayerController or not PlayerController:IsValid() then return nil end
 
     local Pawn = PlayerController.AcknowledgedPawn
     if not Pawn or not Pawn:IsValid() then Pawn = PlayerController.Pawn end
+     -- Essential validity check after lookup
     if not Pawn or not Pawn:IsValid() then return nil end
 
     local pawnNames = M.GetObjectNames(Pawn)
     if pawnNames.ClassFName == config.requiredPlayerClassName then
+        -- Found the character pawn, cache it and clear the vehicle cache
         cachedPlayerPawn = Pawn ---@cast Pawn ABP_Character_C
-        cachedPossessedVehicle = nil -- If we found the character, clear the vehicle cache
+        cachedPossessedVehicle = nil
+        -- print("[Utils] Cached PlayerPawn") -- Optional debug
         return cachedPlayerPawn
     end
 
@@ -62,14 +72,18 @@ function M.GetPlayerPawn()
     return nil
 end
 
--- Gets the currently equipped weapon object, checking inheritance. Relies on GetPlayerPawn.
+-- Gets the currently equipped weapon object, checking inheritance. Relies on GetPlayerPawn cache.
 ---@return ABP_RangedWeaponBase_C | nil
 function M.GetEquippedRangedWeapon()
-    local playerPawn = M.GetPlayerPawn()
+    local playerPawn = M.GetPlayerPawn() -- Uses cached pawn if available
+    -- Essential validity check: GetPlayerPawn might return nil
     if not playerPawn then return nil end
+    -- Note: We trust the cached playerPawn reference from GetPlayerPawn here.
+    -- Validity check for playerPawn happens downstream in apply_all.
 
     local weapon = nil
     local success, equipped = pcall(function() return playerPawn.ActiveEquipable end)
+    -- Essential validity check on retrieved weapon
     if not success or not equipped or not equipped:IsValid() then return nil end
     weapon = equipped ---@cast weapon ABP_EquipableBase_C
 
@@ -80,31 +94,40 @@ function M.GetEquippedRangedWeapon()
 end
 
 -- Gets the pawn currently possessed by the player *if* it's a vehicle, using caching.
+-- Relies on external invalidation and downstream checks for validity.
 ---@return ABP_VehicleBase_C | nil
 function M.GetCurrentlyPossessedVehicle()
-    -- Use cache if valid
-    if cachedPossessedVehicle and cachedPossessedVehicle:IsValid() then
+    -- Use cache if it exists (Highest performance path)
+    -- WARNING: No IsValid() check here for performance; relies on hooks/external checks.
+    if cachedPossessedVehicle then
         return cachedPossessedVehicle
     end
 
-    -- Cache miss or invalid, perform lookup
-    cachedPossessedVehicle = nil -- Invalidate before search
+    -- Cache miss, perform lookup
+    -- print("[Utils] Cache Miss: GetCurrentlyPossessedVehicle") -- Optional Debug
+    cachedPossessedVehicle = nil -- Ensure cleared before assigning below
+
     local PlayerController = FindFirstOf("PlayerController")
+    -- Essential validity check after lookup
     if not PlayerController or not PlayerController:IsValid() then return nil end
 
     local CurrentPawn = PlayerController.AcknowledgedPawn
     if not CurrentPawn or not CurrentPawn:IsValid() then CurrentPawn = PlayerController.Pawn end
+    -- Essential validity check after lookup
     if not CurrentPawn or not CurrentPawn:IsValid() then return nil end
 
     if M.DoesInheritFrom(CurrentPawn, config.requiredVehicleBaseClassName) then
+        -- Found a vehicle, cache it and clear the character cache
         cachedPossessedVehicle = CurrentPawn ---@cast CurrentPawn ABP_VehicleBase_C
-        cachedPlayerPawn = nil -- If we found a vehicle, clear the character cache
+        cachedPlayerPawn = nil
+        -- print("[Utils] Cached PossessedVehicle") -- Optional debug
         return cachedPossessedVehicle
     end
 
     -- Possessed pawn is not a vehicle
     return nil
 end
+
 
 -- Checks if a UObject's class inherits from a specific base class name by walking the super class chain.
 function M.DoesInheritFrom(targetObject, baseClassName)
