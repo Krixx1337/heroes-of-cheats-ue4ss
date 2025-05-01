@@ -1,17 +1,25 @@
 --[[
     Core Utility Functions
     Contains helpers for object finding, name retrieval, inheritance checks,
-    and safe property modification.
+    and safe property modification. Caches player pawn and possessed vehicle,
+    requires external invalidation via hooks for stability.
 --]]
 local config = require("config")
 
 local M = {}
 
--- Cached Player Pawn reference - Necessary for performance.
--- NOTE: Without explicit cache invalidation hooks, this might become stale
---       across map loads/respawns, potentially causing issues.
+-- Cached references - Necessary for performance.
 ---@type ABP_Character_C | nil
 local cachedPlayerPawn = nil
+---@type ABP_VehicleBase_C | nil
+local cachedPossessedVehicle = nil
+
+-- Function to invalidate all relevant caches, called by hooks.
+function M.InvalidateCaches()
+    -- print("[Utils] Invalidating Caches") -- Optional debug
+    cachedPlayerPawn = nil
+    cachedPossessedVehicle = nil
+end
 
 -- Safely gets Class FName and Object Full Name for a UObject.
 function M.GetObjectNames(obj)
@@ -29,38 +37,28 @@ end
 -- Finds and caches the local player's CHARACTER pawn. Returns nil if player is in vehicle.
 ---@return ABP_Character_C | nil
 function M.GetPlayerPawn()
-    -- Use cache if valid AND it's the correct class already
+    -- Use cache if valid
     if cachedPlayerPawn and cachedPlayerPawn:IsValid() then
-        local cachedNames = M.GetObjectNames(cachedPlayerPawn)
-        if cachedNames.ClassFName == config.requiredPlayerClassName then
-             return cachedPlayerPawn
-        else
-             -- Cache holds wrong type (likely vehicle), invalidate for next check
-             cachedPlayerPawn = nil
-        end
+        return cachedPlayerPawn
     end
 
-    -- If cache is invalid or missing, find pawn via controller
-    cachedPlayerPawn = nil
-    ---@type APlayerController | nil
+    -- Cache miss or invalid, perform lookup
+    cachedPlayerPawn = nil -- Invalidate before search
     local PlayerController = FindFirstOf("PlayerController")
     if not PlayerController or not PlayerController:IsValid() then return nil end
 
-    -- Try AcknowledgedPawn first, then Pawn (robust for networking)
-    ---@type APawn | nil
     local Pawn = PlayerController.AcknowledgedPawn
     if not Pawn or not Pawn:IsValid() then Pawn = PlayerController.Pawn end
     if not Pawn or not Pawn:IsValid() then return nil end
 
-    -- Verify the found Pawn's class *is the character*
     local pawnNames = M.GetObjectNames(Pawn)
     if pawnNames.ClassFName == config.requiredPlayerClassName then
-        ---@cast Pawn ABP_Character_C
-        cachedPlayerPawn = Pawn -- Cache the validated character pawn
+        cachedPlayerPawn = Pawn ---@cast Pawn ABP_Character_C
+        cachedPossessedVehicle = nil -- If we found the character, clear the vehicle cache
         return cachedPlayerPawn
     end
 
-    -- If the possessed pawn is not the character class, return nil
+    -- Possessed pawn is not the character
     return nil
 end
 
@@ -81,10 +79,16 @@ function M.GetEquippedRangedWeapon()
     return nil
 end
 
--- Gets the pawn currently possessed by the player *if* it's a vehicle.
--- Necessary for games using a direct vehicle possession model.
+-- Gets the pawn currently possessed by the player *if* it's a vehicle, using caching.
 ---@return ABP_VehicleBase_C | nil
 function M.GetCurrentlyPossessedVehicle()
+    -- Use cache if valid
+    if cachedPossessedVehicle and cachedPossessedVehicle:IsValid() then
+        return cachedPossessedVehicle
+    end
+
+    -- Cache miss or invalid, perform lookup
+    cachedPossessedVehicle = nil -- Invalidate before search
     local PlayerController = FindFirstOf("PlayerController")
     if not PlayerController or not PlayerController:IsValid() then return nil end
 
@@ -93,8 +97,12 @@ function M.GetCurrentlyPossessedVehicle()
     if not CurrentPawn or not CurrentPawn:IsValid() then return nil end
 
     if M.DoesInheritFrom(CurrentPawn, config.requiredVehicleBaseClassName) then
-        return CurrentPawn ---@cast CurrentPawn ABP_VehicleBase_C
+        cachedPossessedVehicle = CurrentPawn ---@cast CurrentPawn ABP_VehicleBase_C
+        cachedPlayerPawn = nil -- If we found a vehicle, clear the character cache
+        return cachedPossessedVehicle
     end
+
+    -- Possessed pawn is not a vehicle
     return nil
 end
 
