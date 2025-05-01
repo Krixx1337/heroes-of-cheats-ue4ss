@@ -11,7 +11,7 @@ function M.Apply()
     if not isRapidFireEnabled then return end
 
     ---@type ABP_VehicleBase_C | nil
-    local possessedVehicle = utils.GetCurrentlyPossessedVehicle() -- Use updated vehicle check
+    local possessedVehicle = utils.GetCurrentlyPossessedVehicle()
 
     if possessedVehicle then
         -- Handle plane rapid fire if possessing a plane
@@ -21,7 +21,7 @@ function M.Apply()
             utils.ApplyPropertyChange("BombReloadTimer", 0.0, 0.0, true, plane, "Plane_RapidFire")
             utils.ApplyPropertyChange("BombReloading", false, false, true, plane, "Plane_RapidFire")
         end
-        -- Tank rapid fire is handled separately in keybinds.lua
+        -- Tank rapid fire is handled separately in keybinds.lua via LMB override
     else
         -- Assume player is on foot if not possessing a vehicle
         ---@type ABP_Character_C | nil
@@ -30,11 +30,22 @@ function M.Apply()
             -- Apply character fire rate multiplier
             utils.ApplyPropertyChange("FireRateCDMultiplier", 0.01, config.defaultFireRateCDMult, true, playerPawn, "PlayerPawn_RapidFire")
 
-            -- Apply instant reload to equipped weapon
-            ---@type ABP_RangedWeaponBase_C | nil
+            -- Apply instant reload to equipped weapon only if its 'Using' flag is true
+            ---@type ABP_RangedWeaponBase_C | nil -- Still expect a RangedWeapon for InstantReload
             local weapon = utils.GetEquippedRangedWeapon()
-            if weapon then
-                 pcall(function() weapon:InstantReload() end)
+            -- ABP_RangedWeaponBase_C inherits from ABP_EquipableBase_C, so 'Using' exists.
+            if weapon and weapon:IsValid() then
+                local isWeaponInUse = false
+                -- Safely check the 'Using' status inherited from ABP_EquipableBase_C
+                local successReadUsing, usingStatus = pcall(function() return weapon.Using end)
+                if successReadUsing and usingStatus == true then
+                    isWeaponInUse = true
+                end
+
+                -- Only attempt instant reload if the weapon reports it is being used
+                if isWeaponInUse then
+                    pcall(function() weapon:InstantReload() end)
+                end
             end
         end
     end
@@ -45,7 +56,6 @@ function M.Reset()
     ---@type ABP_Character_C | nil
     local playerPawn = utils.GetPlayerPawn()
     if playerPawn then
-        print("[HeroesOfCheatsMod] Resetting Character Rapid Fire Properties...")
         utils.ApplyPropertyChange("FireRateCDMultiplier", 0.01, config.defaultFireRateCDMult, false, playerPawn, "PlayerPawn_RapidFire")
     end
     -- Plane properties reset automatically when Apply loop stops forcing them.
