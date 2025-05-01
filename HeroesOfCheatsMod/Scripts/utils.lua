@@ -7,7 +7,9 @@ local config = require("config")
 
 local M = {}
 
--- Cached Player Pawn reference
+-- Cached Player Pawn reference - Necessary for performance.
+-- NOTE: Without explicit cache invalidation hooks, this might become stale
+--       across map loads/respawns, potentially causing issues.
 ---@type ABP_Character_C | nil
 local cachedPlayerPawn = nil
 
@@ -24,82 +26,76 @@ function M.GetObjectNames(obj)
     return names
 end
 
--- Finds and caches the local player's pawn. Returns the pawn object or nil.
+-- Finds and caches the local player's CHARACTER pawn. Returns nil if player is in vehicle.
 ---@return ABP_Character_C | nil
 function M.GetPlayerPawn()
-    -- Use cache if valid
+    -- Use cache if valid AND it's the correct class already
     if cachedPlayerPawn and cachedPlayerPawn:IsValid() then
-        return cachedPlayerPawn
+        local cachedNames = M.GetObjectNames(cachedPlayerPawn)
+        if cachedNames.ClassFName == config.requiredPlayerClassName then
+             return cachedPlayerPawn
+        else
+             -- Cache holds wrong type (likely vehicle), invalidate for next check
+             cachedPlayerPawn = nil
+        end
     end
 
     -- If cache is invalid or missing, find pawn via controller
-    cachedPlayerPawn = nil -- Ensure reset before find attempt
+    cachedPlayerPawn = nil
     ---@type APlayerController | nil
     local PlayerController = FindFirstOf("PlayerController")
     if not PlayerController or not PlayerController:IsValid() then return nil end
 
-    -- Try AcknowledgedPawn first, then Pawn
+    -- Try AcknowledgedPawn first, then Pawn (robust for networking)
     ---@type APawn | nil
     local Pawn = PlayerController.AcknowledgedPawn
     if not Pawn or not Pawn:IsValid() then Pawn = PlayerController.Pawn end
     if not Pawn or not Pawn:IsValid() then return nil end
 
-    -- Verify the found Pawn's class *only when first found*
+    -- Verify the found Pawn's class *is the character*
     local pawnNames = M.GetObjectNames(Pawn)
     if pawnNames.ClassFName == config.requiredPlayerClassName then
-        ---@cast Pawn ABP_Character_C -- Cast to specific type after check
-        cachedPlayerPawn = Pawn -- Cache the validated pawn
+        ---@cast Pawn ABP_Character_C
+        cachedPlayerPawn = Pawn -- Cache the validated character pawn
         return cachedPlayerPawn
     end
 
-    return nil -- Found pawn was not the correct class
+    -- If the possessed pawn is not the character class, return nil
+    return nil
 end
 
-
--- Gets the currently equipped weapon object, checking inheritance.
+-- Gets the currently equipped weapon object, checking inheritance. Relies on GetPlayerPawn.
 ---@return ABP_RangedWeaponBase_C | nil
 function M.GetEquippedRangedWeapon()
-    ---@type ABP_Character_C | nil
     local playerPawn = M.GetPlayerPawn()
     if not playerPawn then return nil end
 
-    -- Safely access ActiveEquipable
-    ---@type ABP_EquipableBase_C | nil
     local weapon = nil
     local success, equipped = pcall(function() return playerPawn.ActiveEquipable end)
     if not success or not equipped or not equipped:IsValid() then return nil end
-    ---@cast equipped ABP_EquipableBase_C
-    weapon = equipped
+    weapon = equipped ---@cast weapon ABP_EquipableBase_C
 
-    -- Use DoesInheritFrom for robust type checking
     if M.DoesInheritFrom(weapon, config.requiredWeaponBaseClassName) then
-         ---@cast weapon ABP_RangedWeaponBase_C
-        return weapon
+         return weapon ---@cast weapon ABP_RangedWeaponBase_C
     end
-
-    return nil -- Equipped item is not a recognized Ranged Weapon
+    return nil
 end
 
--- Gets the vehicle the player pawn is currently operating, if any.
+-- Gets the pawn currently possessed by the player *if* it's a vehicle.
+-- Necessary for games using a direct vehicle possession model.
 ---@return ABP_VehicleBase_C | nil
-function M.GetCurrentVehicle()
-    ---@type ABP_Character_C | nil
-    local playerPawn = M.GetPlayerPawn()
-    if not playerPawn then return nil end
+function M.GetCurrentlyPossessedVehicle()
+    local PlayerController = FindFirstOf("PlayerController")
+    if not PlayerController or not PlayerController:IsValid() then return nil end
 
-    -- Access the VehicleRef property safely
-    ---@type ABP_VehicleBase_C | nil
-    local vehicleRef = nil
-    local success, vehicle = pcall(function() return playerPawn.VehicleRef end)
+    local CurrentPawn = PlayerController.AcknowledgedPawn
+    if not CurrentPawn or not CurrentPawn:IsValid() then CurrentPawn = PlayerController.Pawn end
+    if not CurrentPawn or not CurrentPawn:IsValid() then return nil end
 
-    if success and vehicle and vehicle:IsValid() then
-        -- Check if the vehicle itself inherits from a base (optional, could be too generic)
-        -- For now, just return the valid reference. Type checks happen in feature logic.
-         ---@cast vehicle ABP_VehicleBase_C
-        vehicleRef = vehicle
+    if M.DoesInheritFrom(CurrentPawn, config.requiredVehicleBaseClassName) then
+        return CurrentPawn ---@cast CurrentPawn ABP_VehicleBase_C
     end
-
-    return vehicleRef
+    return nil
 end
 
 -- Checks if a UObject's class inherits from a specific base class name by walking the super class chain.

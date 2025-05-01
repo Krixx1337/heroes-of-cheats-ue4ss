@@ -19,8 +19,8 @@ local M = {}
 
 -- Calls the Apply() function for all relevant features.
 function M.ApplyAllCheats()
-    -- Avoid processing if player pawn is not valid
-    if not utils.GetPlayerPawn() then return end
+    -- Avoid processing if player is not controlling character or a vehicle
+    if not utils.GetPlayerPawn() and not utils.GetCurrentlyPossessedVehicle() then return end
 
     for featureName, featureModule in pairs(requiredFeatures) do
         if featureModule and type(featureModule.Apply) == "function" then

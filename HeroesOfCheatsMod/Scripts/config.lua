@@ -43,7 +43,4 @@ M.Features = {
     EXPERIMENTAL_TOGGLE = "enableExperimental",
 }
 
--- Virtual Key Codes
-M.VK_LBUTTON = 0x01 -- Left Mouse Button
-
 return M

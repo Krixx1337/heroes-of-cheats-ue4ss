@@ -55,7 +55,7 @@ keybinds.RegisterAll()
 
 -- Mod Load Completion Message
 print("-----------------------------------------------------")
-print("[HeroesOfCheatsMod] Enhanced Mod Loaded (v1.1).")
+print("[HeroesOfCheatsMod] Loaded Successfully (v1.1).")
 print("  > All features initialized to OFF.")
 print("  > Keybinds:")
 local bindList = keybinds.GetKeybindList()

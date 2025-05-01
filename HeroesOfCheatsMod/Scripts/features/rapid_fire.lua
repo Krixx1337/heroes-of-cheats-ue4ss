@@ -5,37 +5,37 @@ local config = require("config")
 
 local M = {}
 
--- Apply rapid fire effects based on player state (on foot or in plane)
--- Tank rapid fire is handled via direct MC_Fire call in keybinds.lua
+-- Apply rapid fire effects based on player state (on foot or in vehicle)
 function M.Apply()
     local isRapidFireEnabled = state.Get(config.Features.RAPID_FIRE)
     if not isRapidFireEnabled then return end
 
-    ---@type ABP_Character_C | nil
-    local playerPawn = utils.GetPlayerPawn()
-    if not playerPawn then return end
-
-    -- Apply character fire rate multiplier
-    utils.ApplyPropertyChange("FireRateCDMultiplier", 0.01, config.defaultFireRateCDMult, true, playerPawn, "PlayerPawn_RapidFire")
-
     ---@type ABP_VehicleBase_C | nil
-    local vehicleRef = utils.GetCurrentVehicle()
+    local possessedVehicle = utils.GetCurrentlyPossessedVehicle() -- Use updated vehicle check
 
-    if not vehicleRef then
-        -- Player is on foot: Apply instant reload to equipped weapon
-        ---@type ABP_RangedWeaponBase_C | nil
-        local weapon = utils.GetEquippedRangedWeapon()
-        if weapon then
-             pcall(function() weapon:InstantReload() end)
-        end
-    else
-        -- Player is in a vehicle: Apply Plane-specific rapid fire
-        if utils.DoesInheritFrom(vehicleRef, config.requiredPlaneBaseClassName) then
+    if possessedVehicle then
+        -- Handle plane rapid fire if possessing a plane
+        if utils.DoesInheritFrom(possessedVehicle, config.requiredPlaneBaseClassName) then
             ---@type ABP_PlaneBase_C
-            local plane = vehicleRef -- Hinting as specific type after check
-            -- Apply Plane rapid fire (bomb reload timer and status flag)
-            utils.ApplyPropertyChange("BombReloadTimer", 0.0, 0.0, true, plane, "Plane_RapidFire") -- Force 0 while active
-            utils.ApplyPropertyChange("BombReloading", false, false, true, plane, "Plane_RapidFire") -- Force false while active
+            local plane = possessedVehicle
+            utils.ApplyPropertyChange("BombReloadTimer", 0.0, 0.0, true, plane, "Plane_RapidFire")
+            utils.ApplyPropertyChange("BombReloading", false, false, true, plane, "Plane_RapidFire")
+        end
+        -- Tank rapid fire is handled separately in keybinds.lua
+    else
+        -- Assume player is on foot if not possessing a vehicle
+        ---@type ABP_Character_C | nil
+        local playerPawn = utils.GetPlayerPawn()
+        if playerPawn then
+            -- Apply character fire rate multiplier
+            utils.ApplyPropertyChange("FireRateCDMultiplier", 0.01, config.defaultFireRateCDMult, true, playerPawn, "PlayerPawn_RapidFire")
+
+            -- Apply instant reload to equipped weapon
+            ---@type ABP_RangedWeaponBase_C | nil
+            local weapon = utils.GetEquippedRangedWeapon()
+            if weapon then
+                 pcall(function() weapon:InstantReload() end)
+            end
         end
     end
 end
@@ -44,16 +44,11 @@ end
 function M.Reset()
     ---@type ABP_Character_C | nil
     local playerPawn = utils.GetPlayerPawn()
-    if not playerPawn then return end
-
-    print("[HeroesOfCheatsMod] Resetting Character/Plane Rapid Fire Properties...")
-
-    -- Reset character fire rate multiplier to default
-    utils.ApplyPropertyChange("FireRateCDMultiplier", 0.01, config.defaultFireRateCDMult, false, playerPawn, "PlayerPawn_RapidFire")
-
-    -- Plane properties (BombReloadTimer, BombReloading) reset automatically
-    -- when the Apply function stops forcing them, as their default/inactive state is 0/false.
-    -- No explicit reset needed here.
+    if playerPawn then
+        print("[HeroesOfCheatsMod] Resetting Character Rapid Fire Properties...")
+        utils.ApplyPropertyChange("FireRateCDMultiplier", 0.01, config.defaultFireRateCDMult, false, playerPawn, "PlayerPawn_RapidFire")
+    end
+    -- Plane properties reset automatically when Apply loop stops forcing them.
 end
 
 return M
