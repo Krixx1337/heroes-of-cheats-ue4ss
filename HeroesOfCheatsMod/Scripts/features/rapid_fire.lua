@@ -1,58 +1,70 @@
 --[[ Feature: Rapid Fire (Character & Plane) & Instant Reload (Character) ]]--
 local utils = require("utils")
-local state = require("state")
-local config = require("config")
+local config = require("config") -- Still needed for default values
 
 local M = {}
 
--- Apply rapid fire effects based on player state (on foot or in vehicle)
+-- Apply rapid fire effects to character/equipable or vehicle.
 ---@param playerPawn ABP_Character_C | nil
 ---@param possessedVehicle ABP_VehicleBase_C | nil
----@param currentWeapon ABP_RangedWeaponBase_C | nil
+---@param currentWeapon ABP_RangedWeaponBase_C | nil -- Argument kept for signature consistency.
 function M.Apply(playerPawn, possessedVehicle, currentWeapon)
-    -- No need to check state here, apply_all already did.
-    -- Use passed arguments directly.
 
-    if possessedVehicle and possessedVehicle:IsValid() then -- Check if vehicle is valid
-        -- Handle plane rapid fire if possessing a plane
-        if utils.DoesInheritFrom(possessedVehicle, config.requiredPlaneBaseClassName) then
-            ---@type ABP_PlaneBase_C
-            local plane = possessedVehicle
-            utils.ApplyPropertyChange("BombReloadTimer", 0.0, 0.0, true, plane, "Plane_RapidFire")
-            utils.ApplyPropertyChange("BombReloading", false, false, true, plane, "Plane_RapidFire")
-        end
-        -- Tank rapid fire is handled separately in keybinds.lua via LMB override
-    elseif playerPawn and playerPawn:IsValid() then -- Check if player pawn is valid
-        -- Apply character fire rate multiplier
+    -- Handle Vehicle Logic (Planes)
+    if possessedVehicle and possessedVehicle:IsValid() and utils.DoesInheritFrom(possessedVehicle, config.requiredPlaneBaseClassName) then
+        ---@type ABP_PlaneBase_C
+        local plane = possessedVehicle
+        -- Apply instant bomb reload effect (using hardcoded 0.0 for enabled state)
+        utils.ApplyPropertyChange("BombReloadTimer", 0.0, 0.0, true, plane, "Plane_RapidFire") -- Assuming 0.0 is also the default here for simplicity. Adjust if needed.
+        utils.ApplyPropertyChange("BombReloading", false, false, true, plane, "Plane_RapidFire") -- Assuming false is also the default. Adjust if needed.
+        return -- Exit early if handling vehicle
+    end
+    -- Note: Tank rapid fire is handled via LMB hook in keybinds.lua
+
+    -- Handle Character & Equipable Logic
+    if playerPawn and playerPawn:IsValid() then
+        -- Apply character fire rate cooldown reduction (using hardcoded 0.01 for enabled state)
         utils.ApplyPropertyChange("FireRateCDMultiplier", 0.01, config.defaultFireRateCDMult, true, playerPawn, "PlayerPawn_RapidFire")
 
-        -- Apply instant reload to equipped weapon only if its 'Using' flag is true
-        ---@type ABP_RangedWeaponBase_C | nil
-        local weapon = currentWeapon -- Use the passed argument
-        if weapon and weapon:IsValid() then
+        -- Check for active Ranged Weapon or Throwable
+        local rangedWeapon = utils.GetEquippedRangedWeapon()
+        local throwable = utils.GetActiveThrowable()
+
+        if rangedWeapon then
+            -- Attempt instant reload if the weapon is currently being used
             local isWeaponInUse = false
-            -- Safely check the 'Using' status inherited from ABP_EquipableBase_C
-            local successReadUsing, usingStatus = pcall(function() return weapon.Using end)
+            local successReadUsing, usingStatus = pcall(function() return rangedWeapon.Using end)
             if successReadUsing and usingStatus == true then
                 isWeaponInUse = true
             end
-
             if isWeaponInUse then
-                pcall(function() weapon:InstantReload() end)
+                pcall(function() rangedWeapon:InstantReload() end) -- Safely attempt reload
             end
+        elseif throwable then
+            -- Apply instant re-throw effect (using hardcoded 0.0 for enabled state)
+            utils.ApplyPropertyChange("ReloadTime", 0.0, config.defaultThrowableReloadTime, true, throwable, "Throwable_RapidFire")
         end
     end
 end
 
--- Reset properties modified by rapid fire when the feature is toggled OFF
--- Note: This still needs to fetch the pawn itself as Apply might not be called when resetting.
+-- Reset properties modified by rapid fire when the feature is toggled OFF.
 function M.Reset()
-    ---@type ABP_Character_C | nil
-    local localPlayerPawn = utils.GetPlayerPawn() -- Need to fetch here for reset logic
+    -- Reset player pawn fire rate multiplier
+    local localPlayerPawn = utils.GetPlayerPawn()
     if localPlayerPawn and localPlayerPawn:IsValid() then
+        -- Call ApplyPropertyChange with 'false' to apply the default value.
+        -- The first parameter (enabledValue) is still needed but isn't used when 'false' is passed.
         utils.ApplyPropertyChange("FireRateCDMultiplier", 0.01, config.defaultFireRateCDMult, false, localPlayerPawn, "PlayerPawn_RapidFire")
     end
-    -- Plane properties reset automatically when Apply loop stops forcing them.
+
+    -- Reset Throwable ReloadTimer if currently held
+    local throwable = utils.GetActiveThrowable()
+    if throwable then
+        -- Call ApplyPropertyChange with 'false' to apply the default value.
+        utils.ApplyPropertyChange("ReloadTime", 0.0, config.defaultThrowableReloadTime, false, throwable, "Throwable_RapidFire")
+    end
+    -- Note: Plane properties reset automatically when Apply loop stops forcing them.
+    -- Note: Ranged weapon InstantReload simply stops being called; no explicit reset needed.
 end
 
 return M

@@ -66,20 +66,51 @@ function M.GetPlayerPawn()
     return nil
 end
 
--- Gets the currently equipped weapon object, checking inheritance. Relies on GetPlayerPawn cache.
+-- Safely gets the pawn's currently active equipable.
+---@param pawn APawn | nil The pawn to check.
+---@return ABP_EquipableBase_C | nil The equipable object or nil if invalid/not found.
+function M.GetActiveEquipable(pawn)
+    if not pawn or not pawn:IsValid() then return nil end
+
+    local equipable = nil
+    local successGetEquip, eq = pcall(function() return pawn.ActiveEquipable end)
+    if successGetEquip and eq and eq:IsValid() then
+        equipable = eq ---@cast equipable ABP_EquipableBase_C
+    end
+    return equipable
+end
+
+-- Gets the currently equipped weapon object IF it's a RangedWeaponBase.
+-- Relies on GetPlayerPawn cache and GetActiveEquipable helper.
 ---@return ABP_RangedWeaponBase_C | nil
 function M.GetEquippedRangedWeapon()
     local playerPawn = M.GetPlayerPawn() -- Uses cached pawn if available
-    if not playerPawn or not playerPawn:IsValid() then return nil end -- Check validity AFTER getting it
+    -- No need for IsValid check here, GetActiveEquipable handles nil pawn
 
-    local weapon = nil
-    local success, equipped = pcall(function() return playerPawn.ActiveEquipable end)
-    if not success or not equipped or not equipped:IsValid() then return nil end
-    weapon = equipped ---@cast weapon ABP_EquipableBase_C
+    -- Use the helper function to get the generic equipable first
+    local equipable = M.GetActiveEquipable(playerPawn)
 
-    if M.DoesInheritFrom(weapon, config.requiredWeaponBaseClassName) then
-         return weapon ---@cast weapon ABP_RangedWeaponBase_C
+    -- Check if the retrieved equipable is valid and the correct type
+    if equipable and M.DoesInheritFrom(equipable, config.requiredWeaponBaseClassName) then
+        return equipable ---@cast equipable ABP_RangedWeaponBase_C
     end
+
+    -- Return nil if no equipable, not valid, or not a ranged weapon
+    return nil
+end
+
+-- Gets the currently equipped item object IF it's a ThrowableBase.
+---@return ABP_Throwablebase_C | nil
+function M.GetActiveThrowable()
+    local playerPawn = M.GetPlayerPawn()
+    local equipable = M.GetActiveEquipable(playerPawn) -- Use helper
+
+    -- Check if the retrieved equipable is valid and the correct type
+    if equipable and M.DoesInheritFrom(equipable, config.requiredThrowableBaseClassName) then
+        return equipable ---@cast equipable ABP_Throwablebase_C
+    end
+
+    -- Return nil if no equipable, not valid, or not a throwable
     return nil
 end
 

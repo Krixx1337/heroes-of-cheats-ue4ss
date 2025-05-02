@@ -11,6 +11,7 @@ M.requiredWeaponBaseClassName = "BP_RangedWeaponBase_C"
 M.requiredTankBaseClassName = "BP_TankBase_C"
 M.requiredPlaneBaseClassName = "BP_PlaneBase_C"
 M.requiredVehicleBaseClassName = "BP_VehicleBase_C"
+M.requiredThrowableBaseClassName = "BP_Throwablebase_C"
 
 -- Prefix for persistent state variables
 M.sharedVarPrefix = "HoV_"
@@ -24,6 +25,7 @@ M.loopIntervalMs = 50
 M.defaultWalkSpeedMult = 0.335
 M.defaultRunSpeedMult = 0.500
 M.defaultFireRateCDMult = 1.0
+M.defaultThrowableReloadTime = 5.0
 
 -- Recoil Defaults (captured for potential resets)
 M.defaultRecoilHip = 0.030
