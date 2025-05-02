@@ -30,7 +30,7 @@ local lastLookupTime = 0.0
 -- which were found to be a bottleneck, especially under load. However, this
 -- increases potential delay in cheats reacting to weapon/vehicle changes between
 -- hook-triggered cache invalidations. Adjust based on performance testing.
-local lookupInterval = 0.5     -- Lookup objects every 1.0 second (Adjust as needed)
+local lookupInterval = 0.5
 
 function M.ApplyAllCheats()
     local currentTime = os.clock()

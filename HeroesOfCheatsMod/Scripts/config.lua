@@ -15,7 +15,9 @@ M.requiredVehicleBaseClassName = "BP_VehicleBase_C"
 -- Prefix for persistent state variables
 M.sharedVarPrefix = "HoV_"
 
--- Enforcement loop interval (milliseconds)
+-- Cheat enforcement loop interval. Default: 50ms (20Hz).
+-- Balances update responsiveness (lower values improve single-shot rapid fire rate)
+-- against client CPU load (higher values reduce load).
 M.loopIntervalMs = 50
 
 -- Default Game Values (captured for potential resets)
