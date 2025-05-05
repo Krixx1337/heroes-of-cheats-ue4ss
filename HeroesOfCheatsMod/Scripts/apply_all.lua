@@ -9,13 +9,18 @@ local config = require("config")
 
 -- Map feature state names to their modules.
 local featureMap = {
+    -- Toggleable Features
     [config.Features.INF_DAMAGE]       = require("features.damage"),
     [config.Features.BURN_BULLETS]     = require("features.burning_bullets"),
     [config.Features.SUPER_SPEED]      = require("features.speed"),
     [config.Features.PERFECT_ACCURACY] = require("features.perfect_accuracy"),
     [config.Features.RAPID_FIRE]       = require("features.rapid_fire"),
-    [config.Features.VEHICLE_GOD_MODE]= require("features.vehicle_god_mode"),
+    [config.Features.VEHICLE_GOD_MODE] = require("features.vehicle_god_mode"),
     [config.Features.EXPERIMENTAL_TOGGLE] = require("features.experimental"),
+
+    -- Always-On Features
+    -- We use a unique key that won't conflict with config.Features state names
+    ["_AlwaysInCombatZone"]            = require("features.always_in_combat_zone"),
 }
 
 local M = {}
@@ -25,12 +30,7 @@ local lastPawn = nil           ---@type ABP_Character_C | nil
 local lastVehicle = nil        ---@type ABP_VehicleBase_C | nil
 local lastWeapon = nil         ---@type ABP_RangedWeaponBase_C | nil
 local lastLookupTime = 0.0
--- NOTE: lookupInterval controls how often pawn/vehicle/weapon references are refreshed.
--- Higher values improve performance by reducing calls to utils.Get... functions,
--- which were found to be a bottleneck, especially under load. However, this
--- increases potential delay in cheats reacting to weapon/vehicle changes between
--- hook-triggered cache invalidations. Adjust based on performance testing.
-local lookupInterval = 0.5
+local lookupInterval = 0.5     -- Lookup objects every 0.5 seconds
 
 function M.ApplyAllCheats()
     local currentTime = os.clock()
@@ -42,26 +42,39 @@ function M.ApplyAllCheats()
         lastPawn = utils.GetPlayerPawn()
         lastVehicle = utils.GetCurrentlyPossessedVehicle()
         lastWeapon = nil -- Reset weapon before potential update below
-        -- Update weapon reference only if we just looked up and found a valid pawn
         if lastPawn and lastPawn:IsValid() then
             lastWeapon = utils.GetEquippedRangedWeapon()
         end
-        -- print("[ApplyAll DEBUG] Performed object lookup.") -- Optional debug
     end
 
-    -- Use the last known references for checks and feature application
-    if (not lastPawn or not lastPawn:IsValid()) and (not lastVehicle or not lastVehicle:IsValid()) then
-        return
-    end
+    -- Iterate through ALL mapped features (toggleable and always-on)
+    for featureKey, featureModule in pairs(featureMap) do
+        local runThisFeature = false
 
-    -- Iterate through mapped features and apply if enabled
-    for featureStateName, featureModule in pairs(featureMap) do
-        if state.Get(featureStateName) then
+        -- Determine if the feature should run
+        if featureKey == "_AlwaysInCombatZone" then
+            -- Always run this specific feature
+            runThisFeature = true
+        else
+            -- For toggleable features, check the state
+            -- The key here IS the featureStateName from config.Features
+            if state.Get(featureKey) then
+                 -- Also ensure pawn or vehicle is valid for toggleable features that likely need them
+                 if (lastPawn and lastPawn:IsValid()) or (lastVehicle and lastVehicle:IsValid()) then
+                    runThisFeature = true
+                 end
+            end
+        end
+
+        -- Execute Apply if the feature should run
+        if runThisFeature then
             if featureModule and type(featureModule.Apply) == "function" then
                 -- Pass the last known objects (potentially stale) to the Apply functions
+                -- The Apply function itself handles nil checks if needed.
                 local success, err = pcall(featureModule.Apply, lastPawn, lastVehicle, lastWeapon)
                 if not success then
-                    print(string.format("[HeroesOfCheatsMod] ERROR executing Apply for feature state '%s': %s", featureStateName, tostring(err)))
+                    local featureName = featureKey -- Use the key for logging
+                    print(string.format("[HeroesOfCheatsMod] ERROR executing Apply for feature '%s': %s", featureName, tostring(err)))
                 end
             end
         end
