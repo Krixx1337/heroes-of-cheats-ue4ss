@@ -13,6 +13,7 @@ local burning_bullets = require("features.burning_bullets")
 local speed = require("features.speed")
 local perfect_accuracy = require("features.perfect_accuracy")
 local rapid_fire = require("features.rapid_fire")
+local convenient_movement = require("features.convenient_movement")
 
 local M = {}
 local KeybindList = {} -- Stores info for the load message
@@ -36,6 +37,7 @@ function M.RegisterAll()
     AddKeybind(Key.F5, "F5", {}, "Rapid Fire (Character/Plane/Tank)", config.Features.RAPID_FIRE, rapid_fire.Apply, rapid_fire.Reset)
     -- F6 skipped
     AddKeybind(Key.F7, "F7", {}, "Vehicle God Mode", config.Features.VEHICLE_GOD_MODE, nil, nil)
+    AddKeybind(Key.F8, "F8", {}, "Convenient Movement", config.Features.CONVENIENT_MOVEMENT, convenient_movement.Apply, convenient_movement.Reset) -- Added: Uses explicit Reset
     -- AddKeybind(Key.HOME, "HOME", {}, "Experimental Toggle", config.Features.EXPERIMENTAL_TOGGLE, nil, nil) -- Keep commented out
 
     -- Register Left Mouse Button handler for Tank Rapid Fire directly

@@ -114,6 +114,23 @@ function M.GetActiveThrowable()
     return nil
 end
 
+-- Safely gets the CharacterMovement component from a pawn.
+---@param pawn APawn | nil The pawn to check.
+---@return UCharacterMovementComponent | nil The component object or nil if invalid/not found.
+function M.GetCharacterMovementComponent(pawn) -- Renamed for clarity
+    if not pawn or not pawn:IsValid() then return nil end
+
+    local movementComponent = nil
+    -- Standard UE ACharacter property name is 'CharacterMovement'
+    local success, comp = pcall(function() return pawn.CharacterMovement end)
+    if success and comp and comp:IsValid() then
+        -- Cast might be slightly different depending on exact inheritance,
+        -- but UCharacterMovementComponent is usually safe base type.
+        movementComponent = comp ---@cast movementComponent UCharacterMovementComponent
+    end
+    return movementComponent
+end
+
 -- Gets the pawn currently possessed by the player *if* it's a vehicle, using caching.
 -- Relies on external invalidation and downstream checks for validity.
 ---@return ABP_VehicleBase_C | nil

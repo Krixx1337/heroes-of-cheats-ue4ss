@@ -16,6 +16,7 @@ local featureMap = {
     [config.Features.PERFECT_ACCURACY] = require("features.perfect_accuracy"),
     [config.Features.RAPID_FIRE]       = require("features.rapid_fire"),
     [config.Features.VEHICLE_GOD_MODE] = require("features.vehicle_god_mode"),
+    [config.Features.CONVENIENT_MOVEMENT] = require("features.convenient_movement"),
     [config.Features.EXPERIMENTAL_TOGGLE] = require("features.experimental"),
 
     -- Always-On Features

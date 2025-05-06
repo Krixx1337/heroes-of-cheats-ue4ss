@@ -27,6 +27,12 @@ M.defaultRunSpeedMult = 0.500
 M.defaultFireRateCDMult = 1.0
 M.defaultThrowableReloadTime = 5.0
 
+-- Defaults for Convenient Movement
+M.defaultWalkableFloorZ = 0.642
+M.defaultMaxStepHeight  = 45.0
+M.defaultMaxAcceleration = 3050.0
+M.defaultAirControl      = 0.25
+
 -- Recoil Defaults (captured for potential resets)
 M.defaultRecoilHip = 0.030
 M.defaultRecoilAim = 0.030
@@ -44,6 +50,7 @@ M.Features = {
     PERFECT_ACCURACY = "enableAccuracy",
     RAPID_FIRE = "enableRapid",
     VEHICLE_GOD_MODE = "enableVehicleGodMode",
+    CONVENIENT_MOVEMENT = "enableMoveConvenience",
     EXPERIMENTAL_TOGGLE = "enableExperimental",
 }
 
