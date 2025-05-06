@@ -41,8 +41,8 @@ function M.Apply(playerPawn, possessedVehicle, currentWeapon)
                 pcall(function() rangedWeapon:InstantReload() end) -- Safely attempt reload
             end
         elseif throwable then
-            -- Apply instant re-throw effect (using hardcoded 0.0 for enabled state)
-            utils.ApplyPropertyChange("ReloadTime", 0.0, config.defaultThrowableReloadTime, true, throwable, "Throwable_RapidFire")
+            -- Throwable logic commented out due to server kick issue
+            -- utils.ApplyPropertyChange("ReloadTime", 0.0, config.defaultThrowableReloadTime, true, throwable, "Throwable_RapidFire")
         end
     end
 end
@@ -60,8 +60,8 @@ function M.Reset()
     -- Reset Throwable ReloadTimer if currently held
     local throwable = utils.GetActiveThrowable()
     if throwable then
-        -- Call ApplyPropertyChange with 'false' to apply the default value.
-        utils.ApplyPropertyChange("ReloadTime", 0.0, config.defaultThrowableReloadTime, false, throwable, "Throwable_RapidFire")
+        -- Throwable logic commented out due to server kick issue
+        -- utils.ApplyPropertyChange("ReloadTime", 0.0, config.defaultThrowableReloadTime, false, throwable, "Throwable_RapidFire")
     end
     -- Note: Plane properties reset automatically when Apply loop stops forcing them.
     -- Note: Ranged weapon InstantReload simply stops being called; no explicit reset needed.
