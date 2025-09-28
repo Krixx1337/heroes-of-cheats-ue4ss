@@ -1,8 +1,9 @@
 # Heroes of Valor UE4SS Mod
 
 > [!WARNING]
-> **This mod is for a now-outdated Early Access version of *Heroes of Valor*.**
-> Due to significant game changes, **it is highly unlikely to work** with the current retail build or any post-early access patch. It is kept here for historical and educational purposes only.
+> **This mod is for an outdated Early Access version of *Heroes of Valor*.**
+> 
+> It was last tested and confirmed working in **August 2025**. Due to major game updates since then, **it is highly unlikely to work** with the current retail build or any subsequent patch. It is kept here for historical and educational purposes only.
 
 A Lua-based mod for **Heroes of Valor**, built using **UE4SS (v3.0.1+)**, demonstrating custom gameplay modifications for educational and research purposes.
 
@@ -74,4 +75,6 @@ Toggled status is shown in the UE4SS console. Modifications persist across respa
 
 ## Disclaimer
 
-This project is provided as-is, intended for educational and research purposes only. It demonstrates how to extend UE4-based games with Lua scripting through UE4SS. It is not designed for competitive or commercial use, and future game updates may break functionality.
+**EARLY ACCESS WARNING:** This mod was specifically developed for an **Early Access** version of *Heroes of Valor* and was last tested working in **August 2025**. Due to the nature of early development and subsequent major updates, this code **is highly likely to be broken or non-functional** in the current or any future retail version of the game.
+
+This project is provided as-is, intended for educational and research purposes only. It demonstrates how to extend UE4-based games with Lua scripting through UE4SS. It is not designed for competitive or commercial use, and any use is at your own risk.
